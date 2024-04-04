@@ -14,16 +14,20 @@ public class CombinationService {
     @Autowired
     CombinationRepository combinationRepository;
     
+    private static final Integer RESULT = 66;
+    private long startTime = 0;
+    private long endTime = 0;
+    // A FAIRE 
+    
     // depart de la génération des combinaisons possibles et test des combinaisons valides + calcul du temps d'execution
-    public void generateSolutions() {
-	long startTime = System.currentTimeMillis(); // Enregistrer l'heure de début
-        
-        int[] userVal = {9,8,7,6,5,4,3,2,1}; // 52.888885
-        generateCombinations(userVal, 0);
-        
-        long endTime = System.currentTimeMillis(); // Enregistrer l'heure de fin
-        long executionTime = endTime - startTime; // Calculer le temps d'exécution en millisecondes
-        System.out.println("Temps d'exécution de generateSolutions : " + executionTime + " millisecondes");
+    public Integer generateSolutions() {
+	int[] userVal = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+	startTime = System.currentTimeMillis(); // Enregistrer l'heure de début
+	generateCombinations(userVal, 0);
+	endTime = System.currentTimeMillis(); // Enregistrer l'heure de fin
+	long executionTime = endTime - startTime; // Calculer le temps d'exécution en millisecondes
+	System.out.println("Temps d'exécution de generateSolutions : " + executionTime + " millisecondes");
+	return Math.toIntExact(executionTime);
     }
     
     // Génère toutes les combinaisons possibles (récursivité) pour un tableau d'entier unique de 1 à 9 = 362880 possibilité, soit 9!
@@ -31,12 +35,11 @@ public class CombinationService {
 	if (debut == tableau.length - 1) {
 	    checkAndSaveValidCombination(tableau);
             return;
-        } else {
-            for (int i = debut; i < tableau.length; i++) {
-                swap(tableau, debut, i);
-                generateCombinations(tableau, debut + 1);
-                swap(tableau, debut, i);
-            }
+        }
+        for (int i = debut; i < tableau.length; i++) {
+             swap(tableau, debut, i);
+             generateCombinations(tableau, debut + 1);
+             swap(tableau, debut, i);
         }
     }
     
@@ -49,8 +52,7 @@ public class CombinationService {
     
     // Test de la validiter d'une combinaison. Si valide, enregistrement en BDD
     private void checkAndSaveValidCombination(int[] combVal) {
-	float result = combVal[0] + (13* (float) combVal[1]/combVal[2]) + combVal[3] + (12*combVal[4]) - combVal[5] - 11 + ((float) combVal[6]*combVal[7]/combVal[8]) - 10;
-	if (result == 66) {
+	if (isCombinationValid(combVal)) {
 	    Combination comb = new Combination();
 	    String valuesAsString = intArrayToString(combVal);
 	    comb.setValue(valuesAsString);
@@ -60,16 +62,14 @@ public class CombinationService {
     }
     
     public boolean isCombinationValid(int[] combVal) {
+	// Test l'egalité de l'equation
 	float result = combVal[0] + (13* (float) combVal[1]/combVal[2]) + combVal[3] + (12*combVal[4]) - combVal[5] - 11 + ((float) combVal[6]*combVal[7]/combVal[8]) - 10;
-	if (result == 66) {
-	    return true;
-	} else {
-	    return false;
-	}
+	return result == RESULT;
     }
     
     // transforme le tableau d'entier en une chaine de caractère
     public String intArrayToString(int[] combination) {
+	// A FAIRE => StringJoiner à la place de StringBuilder pour ne pas avoir à gerer le dernier cas avec la virgule
 	StringBuilder valuesBuilder = new StringBuilder();
 	for (int i = 0; i < combination.length; i++) {
 	    valuesBuilder.append(combination[i]);
@@ -77,48 +77,69 @@ public class CombinationService {
 	        valuesBuilder.append(",");
 	    }
 	}
-	String valuesAsString = valuesBuilder.toString();
-	return valuesAsString;
+	return valuesBuilder.toString();
     }
     
     // transforme une chaine de caractère en tableau d'entier
     public int[] stringToIntArray(String stringVal) {
-	// Divisez la chaîne en sous-chaînes en utilisant la virgule comme séparateur
-	String[] numbersAsString = stringVal.split(",");    
-	// Créer un tableau pour stocker les entiers
+	String[] numbersAsString = stringVal.split("");    
 	int[] numbers = new int[numbersAsString.length];  
-	// Convertir chaque sous-chaîne en un entier et stocker dans le tableau
 	for (int i = 0; i < numbersAsString.length; i++) {
-	    numbers[i] = Integer.parseInt(numbersAsString[i].trim()); // Utilisez trim() pour supprimer les espaces éventuels
+	    numbers[i] = Integer.parseInt(numbersAsString[i]);
 	}
 	return numbers;
     }
     
+    public String formatString(String stringVal) {
+        return String.join(",", stringVal.split(""));
+    }
+    
     // METHODES CRUD BDD ---------------------------------------------------------------------------------------------------------
     
-    // Sauvegarde ou modification d'une combinaison valide en base de données
+    /**
+     * Sauvegarde ou modification d'une combinaison valide en base de données
+     * @param combination
+     * @return
+     */
     public Combination saveCombination(Combination combination) {
 	return combinationRepository.save(combination);
     }
     
-    // Suppression d'une combinaison valide (par Id)
+    /**
+     * Suppression d'une combinaison valide (par Id)
+     * @param id
+     */
     public void deleteCombination(Integer id) {
 	combinationRepository.deleteById(id);
     }
     
-    // Suppression de toutes les combinaisons de la base de données
-    public void deleteCombinations(Combination combination) {
+    /**
+     * Suppression de toutes les combinaisons de la base de données
+     */
+    public void deleteCombinations() {
 	combinationRepository.deleteAll();
+	System.out.println("Suppression des combinaisons");
     }
     
-    // obtenir une combinaison (par id)
+    /**
+     * obtenir une combinaison (par id)
+     * @param id
+     * @return
+     */
     public Optional<Combination> getCombination(Integer id) {
 	return combinationRepository.findById(id);
     }
     
-    // obtenir toutes les combinaisons 
+    /**
+     * obtenir toutes les combinaisons 
+     * @return
+     */
     public Iterable<Combination> getCombinations() {
 	return combinationRepository.findAll();
+    }
+    
+    public Iterable<Combination> getCombinationsContaining(String value) {
+	return this.combinationRepository.findByValueContaining(value);
     }
     
     

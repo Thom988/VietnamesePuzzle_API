@@ -3,10 +3,12 @@ package com.thom.api.cassetete.controller;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,11 +16,26 @@ import org.springframework.web.bind.annotation.RestController;
 import com.thom.api.cassetete.model.Combination;
 import com.thom.api.cassetete.service.CombinationService;
 
+
 @RestController
 public class CombinationController {
     
     @Autowired
     CombinationService combinationService;
+    
+    
+    /**
+     * Génère les solutions et retourne le temps d'execution
+     * @return
+     */
+    @GetMapping("/combinations/generate")
+    public ResponseEntity<Integer> generateCombinations() {
+	Integer executionTime = combinationService.generateSolutions();
+	if(executionTime == null) {
+	    return ResponseEntity.notFound().build();
+	}
+	return ResponseEntity.ok(executionTime);
+    }
     
     // Obtenir toutes les combinaisons de la BDD
     @GetMapping("/combinations")
@@ -33,6 +50,21 @@ public class CombinationController {
 	return combination.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
     
+    @GetMapping("/combinations/contain/{value}")
+    public ResponseEntity<Iterable<Combination>> getCombinationsContaining(@PathVariable("value") final String value) {
+	String formatValue = this.combinationService.formatString(value);
+	Iterable<Combination> combinations = this.combinationService.getCombinationsContaining(formatValue);
+	return ResponseEntity.ok(combinations);
+    }
+    
+    @GetMapping("/combination/test/{value}")
+    public ResponseEntity<Boolean> getCombinationTest(@PathVariable("value") final String value) {
+	int[] intValue = this.combinationService.stringToIntArray(value);
+	boolean result = this.combinationService.isCombinationValid(intValue);
+	System.out.println(result);
+	return ResponseEntity.ok(result);
+    }
+    
     // Supprimer une combinaison (par id)
     @DeleteMapping("/combination/{id}")
     public ResponseEntity<Void> deleteCombination(@PathVariable("id") final Integer id) {
@@ -42,6 +74,23 @@ public class CombinationController {
 	    } else {
 	        return ResponseEntity.notFound().build(); // La combinaison n'a pas été trouvée
 	    }
+    }
+    
+    @DeleteMapping("/combinations")
+    public ResponseEntity<Void> deleteCombinations() {
+	this.combinationService.deleteCombinations();
+	return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/combination")
+    public ResponseEntity<Combination> saveCombination(@RequestBody Combination combination) {
+	combination.setValue(this.combinationService.formatString(combination.getValue()));
+	try {
+            this.combinationService.saveCombination(combination);
+            return ResponseEntity.status(HttpStatus.CREATED).body(combination);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(combination);
+        }
     }
     
     // Modifier une combinaison, tester sa validité et la sauvegarder en BDD
