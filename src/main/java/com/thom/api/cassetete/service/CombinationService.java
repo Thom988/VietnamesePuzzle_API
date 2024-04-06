@@ -69,13 +69,9 @@ public class CombinationService {
     
     // transforme le tableau d'entier en une chaine de caractère
     public String intArrayToString(int[] combination) {
-	// A FAIRE => StringJoiner à la place de StringBuilder pour ne pas avoir à gerer le dernier cas avec la virgule
 	StringBuilder valuesBuilder = new StringBuilder();
 	for (int i = 0; i < combination.length; i++) {
 	    valuesBuilder.append(combination[i]);
-	    if (i < combination.length - 1) {
-	        valuesBuilder.append(",");
-	    }
 	}
 	return valuesBuilder.toString();
     }
@@ -88,10 +84,6 @@ public class CombinationService {
 	    numbers[i] = Integer.parseInt(numbersAsString[i]);
 	}
 	return numbers;
-    }
-    
-    public String formatString(String stringVal) {
-        return String.join(",", stringVal.split(""));
     }
     
     // METHODES CRUD BDD ---------------------------------------------------------------------------------------------------------
@@ -114,7 +106,7 @@ public class CombinationService {
     }
     
     /**
-     * Suppression de toutes les combinaisons de la base de données
+     * Supprime toutes les combinaisons en base
      */
     public void deleteCombinations() {
 	combinationRepository.deleteAll();
@@ -138,6 +130,11 @@ public class CombinationService {
 	return combinationRepository.findAll();
     }
     
+    /**
+     * Rechercher les combinaisons qui contiennent la chaine en paramètre
+     * @param value
+     * @return
+     */
     public Iterable<Combination> getCombinationsContaining(String value) {
 	return this.combinationRepository.findByValueContaining(value);
     }

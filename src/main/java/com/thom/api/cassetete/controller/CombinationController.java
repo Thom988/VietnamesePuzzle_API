@@ -52,8 +52,7 @@ public class CombinationController {
     
     @GetMapping("/combinations/contain/{value}")
     public ResponseEntity<Iterable<Combination>> getCombinationsContaining(@PathVariable("value") final String value) {
-	String formatValue = this.combinationService.formatString(value);
-	Iterable<Combination> combinations = this.combinationService.getCombinationsContaining(formatValue);
+	Iterable<Combination> combinations = this.combinationService.getCombinationsContaining(value);
 	return ResponseEntity.ok(combinations);
     }
     
@@ -61,7 +60,6 @@ public class CombinationController {
     public ResponseEntity<Boolean> getCombinationTest(@PathVariable("value") final String value) {
 	int[] intValue = this.combinationService.stringToIntArray(value);
 	boolean result = this.combinationService.isCombinationValid(intValue);
-	System.out.println(result);
 	return ResponseEntity.ok(result);
     }
     
@@ -84,7 +82,6 @@ public class CombinationController {
     
     @PostMapping("/combination")
     public ResponseEntity<Combination> saveCombination(@RequestBody Combination combination) {
-	combination.setValue(this.combinationService.formatString(combination.getValue()));
 	try {
             this.combinationService.saveCombination(combination);
             return ResponseEntity.status(HttpStatus.CREATED).body(combination);
