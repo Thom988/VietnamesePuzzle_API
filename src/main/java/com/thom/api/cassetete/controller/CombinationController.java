@@ -83,6 +83,8 @@ public class CombinationController {
     @PostMapping("/combination")
     public ResponseEntity<Combination> saveCombination(@RequestBody Combination combination) {
 	try {
+	    int[] intValue = this.combinationService.stringToIntArray(combination.getValue());
+	    combination.setValid(this.combinationService.isCombinationValid(intValue));
             this.combinationService.saveCombination(combination);
             return ResponseEntity.status(HttpStatus.CREATED).body(combination);
         } catch (Exception e) {
