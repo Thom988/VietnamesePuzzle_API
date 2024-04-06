@@ -93,9 +93,9 @@ public class CombinationController {
     }
     
     // Modifier une combinaison, tester sa validité et la sauvegarder en BDD
-    @PutMapping("/combination/{id}")
-    public ResponseEntity<Combination> updateCombination(@PathVariable("id") final Integer id, @RequestBody Combination combination) {
-	Optional<Combination> comb = combinationService.getCombination(id);
+    @PutMapping("/combination")
+    public ResponseEntity<Combination> updateCombination(@RequestBody Combination combination) {
+	Optional<Combination> comb = combinationService.getCombination(combination.getId());
 	if(comb.isPresent()) {
 	    Combination currentComb = comb.get();
 	    String value = combination.getValue();
